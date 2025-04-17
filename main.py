@@ -40,7 +40,7 @@ def analyze_oi(symbol):
     underlying = data["records"]["underlyingValue"]
     strikes = data["records"]["strikePrices"]
     atm = extract_atm_strike(underlying, strikes)
-    watch_range = [atm - 2 * 100, atm - 1 * 100, atm, atm + 1 * 100, atm + 2 * 100]
+    watch_range = [atm - 200, atm - 100, atm, atm + 100, atm + 200]
 
     alerts = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
