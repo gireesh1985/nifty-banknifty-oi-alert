@@ -2,7 +2,6 @@
 import requests
 import pandas as pd
 from datetime import datetime
-import time
 
 BOT_TOKEN = "7005370202:AAHEy3Oixk3nYCARxr8rUlaTN6LCUHeEDlI"
 CHAT_ID = "537459100"
@@ -49,19 +48,13 @@ def analyze_oi(symbol):
     for r in records:
         strike = r.get("strikePrice")
         if strike in watch_range:
-            ce_oi = r.get("CE", {}).get("changeinOpenInterest", 0)
-            pe_oi = r.get("PE", {}).get("changeinOpenInterest", 0)
             ce_oi_pct = r.get("CE", {}).get("pchangeinOpenInterest", 0)
             pe_oi_pct = r.get("PE", {}).get("pchangeinOpenInterest", 0)
 
             if ce_oi_pct >= 30:
-                alerts.append(f"🔴 {symbol} CE OI Surge
-Strike: {strike}
-OI Change: +{ce_oi_pct:.1f}% 📉")
+                alerts.append(f"🔴 {symbol} CE OI Surge\nStrike: {strike}\nOI Change: +{ce_oi_pct:.1f}% 📉")
             if pe_oi_pct >= 30:
-                alerts.append(f"🟢 {symbol} PE OI Surge
-Strike: {strike}
-OI Change: +{pe_oi_pct:.1f}% 📈")
+                alerts.append(f"🟢 {symbol} PE OI Surge\nStrike: {strike}\nOI Change: +{pe_oi_pct:.1f}% 📈")
 
     if alerts:
         full_msg = f"📊 {symbol} OI ALERT - {now}\n\n" + "\n\n".join(alerts)
