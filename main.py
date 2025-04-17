@@ -1,4 +1,3 @@
-
 import requests
 import pandas as pd
 from datetime import datetime
@@ -22,19 +21,26 @@ def get_option_chain(symbol, retries=3):
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive",
+        "Referer": "https://www.nseindia.com"
     }
+
     with requests.Session() as s:
         try:
-            s.get("https://www.nseindia.com", headers=headers, timeout=5)
-        except:
-            pass
+            s.get("https://www.nseindia.com", headers=headers, timeout=10)
+        except Exception as e:
+            print(f"Initial connection failed: {e}")
+
         for attempt in range(1, retries + 1):
             try:
                 r = s.get(url, headers=headers, timeout=10)
-                return r.json()
+                if r.status_code == 200 and r.text.strip().startswith("{"):
+                    return r.json()
+                else:
+                    raise ValueError("Invalid JSON or empty response")
             except Exception as e:
                 print(f"Attempt {attempt} failed for {symbol}: {e}")
                 time.sleep(2)
+
         print(f"❌ Failed to fetch data for {symbol} after {retries} retries.")
         return None
 
@@ -62,12 +68,12 @@ def analyze_oi(symbol):
             pe_oi_pct = r.get("PE", {}).get("pchangeinOpenInterest", 0)
 
             if ce_oi_pct >= 30:
-                alerts.append(f"🔴 {symbol} CE OI Surge\nStrike: {strike}\nOI Change: +{ce_oi_pct:.1f}% 📉")
+                alerts.append(f"🔴 {symbol} CE OI Surge\\nStrike: {strike}\\nOI Change: +{ce_oi_pct:.1f}% 📉")
             if pe_oi_pct >= 30:
-                alerts.append(f"🟢 {symbol} PE OI Surge\nStrike: {strike}\nOI Change: +{pe_oi_pct:.1f}% 📈")
+                alerts.append(f"🟢 {symbol} PE OI Surge\\nStrike: {strike}\\nOI Change: +{pe_oi_pct:.1f}% 📈")
 
     if alerts:
-        full_msg = f"📊 {symbol} OI ALERT - {now}\n\n" + "\n\n".join(alerts)
+        full_msg = f"📊 {symbol} OI ALERT - {now}\\n\\n" + "\\n\\n".join(alerts)
         send_alert(full_msg)
         print(full_msg)
     else:
