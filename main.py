@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 from datetime import datetime
+import time
 
 BOT_TOKEN = "7005370202:AAHEy3Oixk3nYCARxr8rUlaTN6LCUHeEDlI"
 CHAT_ID = "537459100"
@@ -14,19 +15,28 @@ def send_alert(message):
     except Exception as e:
         print("Telegram error:", e)
 
-def get_option_chain(symbol):
+def get_option_chain(symbol, retries=3):
     url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
     headers = {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
     }
     with requests.Session() as s:
         try:
             s.get("https://www.nseindia.com", headers=headers, timeout=5)
-            r = s.get(url, headers=headers, timeout=5)
-            return r.json()
-        except Exception as e:
-            print(f"Failed to fetch data for {symbol}:", e)
-            return None
+        except:
+            pass
+        for attempt in range(1, retries + 1):
+            try:
+                r = s.get(url, headers=headers, timeout=10)
+                return r.json()
+            except Exception as e:
+                print(f"Attempt {attempt} failed for {symbol}: {e}")
+                time.sleep(2)
+        print(f"❌ Failed to fetch data for {symbol} after {retries} retries.")
+        return None
 
 def extract_atm_strike(spot_price, strike_list):
     return min(strike_list, key=lambda x: abs(x - spot_price))
